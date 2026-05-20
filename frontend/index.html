@@ -1,171 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>My Code Hero - Cyber UI</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Code Reviewer</title>
 
-<style>
-/* (Keep your original CSS exactly as you provided) */
-body {    
-  margin:0; padding:0;
-  font-family: monospace;
-  overflow-x:hidden;
-  background:#0f0c29;
-  color:#fff;
-  position: relative;
-}
-#bgGradient{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-2;background: linear-gradient(-45deg,#0f0c29,#302b63,#24243e);background-size:400% 400%;animation: gradientBG 20s ease infinite;}
-@keyframes gradientBG{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
-.particle{position:absolute;border-radius:50%;opacity:0.6;background: linear-gradient(45deg,#0ff,#0f0,#ff0,#f0f);box-shadow:0 0 8px #0ff,0 0 16px #0f0,0 0 24px #ff0;animation: floatParticle linear infinite;z-index:-1;}
-@keyframes floatParticle{0%{transform: translateY(0) rotate(0deg);}50%{transform: translateY(-30px) rotate(180deg);}100%{transform: translateY(0) rotate(360deg);}}
-.streak{position:absolute;width:2px;height:100px;background: linear-gradient(to bottom, #0ff, transparent);opacity:0.3;animation: streakMove linear infinite;z-index:-1;}
-@keyframes streakMove{0%{transform: translateY(-150px);}100%{transform: translateY(100vh);}}
-#themeToggle{position: fixed;top: 20px;right: 20px;z-index:10;padding:10px 16px;border-radius:8px;font-weight:bold;}
-h1.title-neon{text-shadow:0 0 5px #0ff,0 0 10px #0ff,0 0 20px #0ff,0 0 40px #0ff;font-size:4rem;display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;}
-.emoji-glow{font-size:4rem;animation: emojiGlow 1.2s ease-in-out infinite alternate;}
-@keyframes emojiGlow{from{filter: drop-shadow(0 0 10px #0ff);}to{filter: drop-shadow(0 0 20px #0ff);}}
-.textarea-wrapper{position:relative;width:100%;max-width:800px;margin:auto;}
-#highlightOverlay{position:absolute;top:0; left:0;width:100%;height:300px;pointer-events:none;padding:10px;white-space:pre-wrap;word-wrap:break-word;color:transparent;font-size:16px;line-height:1.5;}
-textarea{width:100%;height:300px;background:#2b2b3a;color:#fff;font-family:monospace;font-size:16px;line-height:1.5;padding:10px;border-radius:8px;border:none;outline:none;resize:vertical;}
-textarea::placeholder{ color:#888; }
-.button-container{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;justify-content:center;}
-button.action-btn{padding:10px 20px;border-radius:8px;font-weight:bold;transition:0.2s;}
-button.action-btn:hover{transform:scale(1.05);}
-#result{margin-top:20px;padding:10px;background:#33334a;border-radius:8px;min-height:50px;white-space:pre-wrap;}
-span.keyword{ color:#00ffff; font-weight:bold; }
-span.error{ color:#ff5555; font-weight:bold; }
-@media(max-width:768px){h1.title-neon{ font-size:2.5rem; }.emoji-glow{ font-size:2.5rem; }#highlightOverlay, textarea{ height:220px; }}
-</style>
-</head>
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
 
-<body>
+  <body>
+    <div id="root"></div>
 
-<div id="bgGradient"></div>
-<div id="particleContainer"></div>
-<div id="streakContainer"></div>
-
-<button id="themeToggle" class="bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-200">🌙 Dark</button>
-
-<div class="flex flex-col items-center mt-16 px-4">
-  <h1 class="title-neon"><div class="emoji-glow">💻</div>My Code Hero</h1>
-
-  <div class="textarea-wrapper mt-6">
-    <div id="highlightOverlay"></div>
-    <textarea id="codeBox" placeholder="Type your code here..."></textarea>
-  </div>
-
-  <div class="button-container">
-    <select id="langSelect" class="action-btn bg-gray-500 hover:bg-gray-600 text-white">
-      <option value="javascript">JavaScript</option>
-      <option value="python">Python</option>
-      <option value="c">C</option>
-      <option value="csharp">C#</option>
-    </select>
-    <button id="reviewBtn" class="action-btn bg-blue-500 hover:bg-blue-600 text-white">🚀 Review</button>
-    <button id="copyBtn" class="action-btn bg-green-500 hover:bg-green-600 text-white">📋 Copy Result</button>
-    <button id="saveBtn" class="action-btn bg-purple-500 hover:bg-purple-600 text-white">💾 Save Snippet</button>
-  </div>
-
-  <div id="result" class="mt-4 w-full max-w-3xl"></div>
-</div>
-
-<script>
-/* Theme toggle */
-document.getElementById("themeToggle").onclick=()=>{document.body.classList.toggle("dark");};
-
-/* Particles */
-const pc=document.getElementById("particleContainer");
-for(let i=0;i<50;i++){
-  const p=document.createElement("div");
-  p.className="particle";
-  const s=5+Math.random()*10;
-  p.style.width=p.style.height=s+"px";
-  p.style.top=Math.random()*innerHeight+"px";
-  p.style.left=Math.random()*innerWidth+"px";
-  p.style.animationDuration=(3+Math.random()*5)+"s";
-  pc.appendChild(p);
-}
-const sc=document.getElementById("streakContainer");
-for(let i=0;i<30;i++){
-  const s=document.createElement("div");
-  s.className="streak";
-  s.style.left=Math.random()*innerWidth+"px";
-  s.style.animationDuration=(2+Math.random()*3)+"s";
-  s.style.height=(50+Math.random()*150)+"px";
-  sc.appendChild(s);
-}
-
-/* Highlight */
-const codeBox=document.getElementById("codeBox");
-const overlay=document.getElementById("highlightOverlay");
-codeBox.oninput=()=>{overlay.innerHTML=codeBox.value
-  .replace(/\b(let|const|var|function)\b/g,'<span class="keyword">$1</span>')
-  .replace(/\bconsole\.log\b/g,'<span class="keyword">console.log</span>')
-  .replace(/\bdef\b/g,'<span class="keyword">def</span>')
-  .replace(/\bprint\b/g,'<span class="keyword">print</span>');
-};
-
-/* Execute & Output */
-const result=document.getElementById("result");
-document.getElementById("reviewBtn").onclick=async ()=>{
-  const code = codeBox.value.trim();
-  if(!code){ result.innerText="⚠️ Please enter code"; return; }
-
-  const lang = document.getElementById("langSelect").value;
-
-  // JS
-  if(lang==="javascript"){
-    let output=[];
-    const originalLog=console.log;
-    console.log=(...args)=>output.push(args.join(" "));
-    try{ new Function(code)(); result.innerText=output.length?output.join("\n"):"✅ JS executed (no output)"; }
-    catch(e){ result.innerText="❌ JS Error:\n"+e.message; }
-    console.log=originalLog;
-
-  // Python
-  } else if(lang==="python"){
-    result.innerText=""; 
-    function outf(text){ result.innerText+=text; }
-    function builtinRead(x){ if(Sk.builtinFiles==undefined || Sk.builtinFiles["files"][x]==undefined) throw "File not found: '"+x+"'"; return Sk.builtinFiles["files"][x]; }
-    Sk.configure({output:outf, read:builtinRead});
-    (Sk.misceval.asyncToPromise(()=>Sk.importMainWithBody("<stdin>", false, code, true)))
-      .catch(e=>{ result.innerText="❌ Python Error:\n"+e.toString(); });
-
-  // C and C# using Judge0 API
-  } else if(lang==="c" || lang==="csharp"){
-    result.innerText="⏳ Running " + lang + "...";
-    const langIDs = {"c":50, "csharp":51};
-    try{
-      const resp = await fetch("https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=false&wait=true",{
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json",
-          "X-RapidAPI-Host":"judge0-ce.p.rapidapi.com",
-          "X-RapidAPI-Key":"YOUR_RAPIDAPI_KEY" // <-- Replace with your RapidAPI key
-        },
-        body: JSON.stringify({
-          source_code: code,
-          language_id: langIDs[lang],
-          stdin: ""
-        })
-      });
-      const data = await resp.json();
-      if(data.stdout) result.innerText=data.stdout;
-      else if(data.stderr) result.innerText="❌ Error:\n"+data.stderr;
-      else result.innerText="⚠️ No output returned";
-    } catch(e){ result.innerText="❌ API Error:\n"+e.message; }
-  }
-};
-
-/* Copy */
-document.getElementById("copyBtn").onclick=()=>{navigator.clipboard.writeText(result.innerText);};
-
-/* Save */
-document.getElementById("saveBtn").onclick=()=>{if(codeBox.value.trim()){ localStorage.setItem("myCodeHeroSnippet",codeBox.value); }};
-</script>
-
-</body>
+    <!-- React entry -->
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>

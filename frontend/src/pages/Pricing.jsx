@@ -1,48 +1,88 @@
-export default function Pricing(){
+import Navbar from "../components/Navbar";
+import { useState } from "react";
 
-  return(
+export default function Pricing() {
 
-    <div>
+  const [selected, setSelected] = useState("Pro");
 
-      <h1 className="text-5xl font-bold mb-10">
-        💎 Pricing
+  const plans = [
+    {
+      name: "Free",
+      price: "$0",
+      desc: "Basic access for beginners",
+      features: ["Chat AI", "Limited requests"]
+    },
+    {
+      name: "Pro",
+      price: "$19",
+      desc: "Best for developers",
+      features: ["Unlimited chat", "Code review", "Analytics"]
+    },
+    {
+      name: "Enterprise",
+      price: "$99",
+      desc: "For teams & companies",
+      features: ["Team dashboard", "API access", "Priority support"]
+    }
+  ];
+
+  return (
+
+    <div className="min-h-screen bg-slate-950 text-white p-6">
+
+      <Navbar />
+
+      <h1 className="text-5xl font-bold mb-10 mt-10">
+        💎 Pricing Plans
       </h1>
 
       <div className="grid md:grid-cols-3 gap-6">
 
-        <div className="bg-slate-900 p-8 rounded-3xl">
+        {plans.map((plan, index) => (
 
-          <h2 className="text-3xl mb-5">
-            Free
-          </h2>
+          <div
+            key={index}
+            className={`p-8 rounded-3xl shadow-lg border-2 transition ${
+              selected === plan.name
+                ? "border-cyan-400 bg-slate-800"
+                : "border-slate-700 bg-slate-900"
+            }`}
+          >
 
-          <p>$0/month</p>
+            <h2 className="text-3xl font-bold mb-2">
+              {plan.name}
+            </h2>
 
-        </div>
+            <p className="text-2xl mb-2">
+              {plan.price}/month
+            </p>
 
-        <div className="bg-blue-600 p-8 rounded-3xl">
+            <p className="text-slate-400 mb-4">
+              {plan.desc}
+            </p>
 
-          <h2 className="text-3xl mb-5">
-            Pro
-          </h2>
+            <ul className="space-y-2 text-sm mb-6">
+              {plan.features.map((f, i) => (
+                <li key={i}>✔ {f}</li>
+              ))}
+            </ul>
 
-          <p>$19/month</p>
+            <button
+              onClick={() => setSelected(plan.name)}
+              className={`w-full py-2 rounded-xl font-bold ${
+                selected === plan.name
+                  ? "bg-green-500"
+                  : "bg-cyan-500 hover:bg-cyan-600"
+              }`}
+            >
+              {selected === plan.name ? "Selected" : "Choose Plan"}
+            </button>
 
-        </div>
+          </div>
 
-        <div className="bg-slate-900 p-8 rounded-3xl">
-
-          <h2 className="text-3xl mb-5">
-            Enterprise
-          </h2>
-
-          <p>$99/month</p>
-
-        </div>
+        ))}
 
       </div>
-
     </div>
-
   );
 }
