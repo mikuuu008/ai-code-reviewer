@@ -38,16 +38,22 @@ export default function Admin() {
 
   // ================= TIMER =================
   useEffect(() => {
-    let interval = null;
+  let interval = null;
 
-    if (timerRunning && timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-    }
+  if (timerRunning) {
+    interval = setInterval(() => {
+      setTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }
 
-    return () => clearInterval(interval);
-  }, [timerRunning, timer]);
+  return () => clearInterval(interval);
+}, [timerRunning]);
 
   // ================= RUN BOT =================
   const runBot = async (botName) => {
@@ -113,8 +119,8 @@ export default function Admin() {
 
   // ================= STOP TIMER =================
   const stopTimer = () => {
-    setTimerRunning(false);
-  };
+  setTimerRunning(false);
+};
 
   // ================= RESET TIMER =================
   const resetTimer = () => {

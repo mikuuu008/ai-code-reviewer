@@ -225,3 +225,72 @@ def review(req: CodeReq):
 
     except Exception as e:
         return {"review": str(e), "status": "error"}
+    
+    
+    # ================= SIMPLE MEMORY DB =================
+users = {}
+
+# ================= CHAT API =================
+@app.post("/chat")
+def chat(req: ChatReq):
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4.1-mini",
+            messages=[
+                {"role": "system", "content": "You are a helpful coding assistant."},
+                {"role": "user", "content": req.message}
+            ]
+        )
+
+        return {"reply": response.choices[0].message.content}
+
+    except Exception as e:
+        return {"reply": str(e)}
+
+# ================= RUN BOT =================
+@app.post("/run-bot")
+def run_bot(req: BotRequest):
+
+    return {
+        "output": f"{req.bot_name} analyzed: {req.message}"
+    }
+
+# ================= GAME API =================
+@app.get("/game/{name}")
+def game(name: str):
+
+    if name == "python":
+        return {"q": "What is output of print(3*3)?", "a": "9"}
+
+    if name == "java":
+        return {"task": "Write a for loop in Java"}
+
+    if name == "c":
+        return {"sequence": ["A", "B", "C", "D"]}
+
+    if name == "csharp":
+        return {"text": "Console.WriteLine('Hello AI');"}
+
+    return {"error": "Game not found"}
+
+# ================= REGISTER =================
+@app.post("/register")
+def register(req: Auth):
+
+    if req.email in users:
+        return {"detail": "User already exists"}
+
+    users[req.email] = req.password
+    return {"message": "User created successfully"}
+
+# ================= LOGIN =================
+@app.post("/login")
+def login(req: Auth):
+
+    if req.email not in users:
+        return {"detail": "User not found"}
+
+    if users[req.email] != req.password:
+        return {"detail": "Wrong password"}
+
+    return {"token": "dummy-token-123"}
