@@ -1,6 +1,14 @@
+import sys
+import io
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from fastapi import WebSocket, WebSocketDisconnect
+import random
 
 import subprocess
 import tempfile
@@ -9,7 +17,6 @@ from dotenv import load_dotenv
 
 from openai import OpenAI
 
-# ================= LOCAL IMPORTS =================
 from app.db import (
     create_user,
     get_user,
@@ -17,7 +24,8 @@ from app.db import (
     save_history,
     get_history,
     get_settings,
-    save_settings
+    save_settings,
+    get_connection
 )
 
 from app.auth import (
@@ -25,16 +33,19 @@ from app.auth import (
     verify_token
 )
 
-# ================= INIT =================
+from app.games import (
+    python_quiz,
+    java_challenge,
+    c_memory_game,
+    csharp_typing
+)
+
 load_dotenv()
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app = FastAPI()
 
-
-
-# ================= CORS =================
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -43,7 +54,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ================= MODELS =================
+
 class Auth(BaseModel):
     email: str
     password: str
@@ -73,109 +84,19 @@ class SettingsReq(BaseModel):
     api_key: str
 
 
-# ================= HOME =================
 @app.get("/")
 def home():
     return {"message": "🚀 AI Code Hero Backend Running Successfully"}
 
 
-def ai_bot_engine(bot_name: str, message: str):
-    
-    system_prompt = f"You are a {bot_name}. Respond in a helpful, technical way."
-
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": message}
-            ]
-        )
-
-        return response.choices[0].message.content
-
-    except Exception as e:
-        return f"AI Error: {str(e)}"  
-    
-@app.post("/run-bot")
-def run_bot(req: BotRequest):
-
-    result = ai_bot_engine(req.bot_name, req.message)
-
-    return {
-        "bot": req.bot_name,
-        "input": req.message,
-        "output": result
-    }
-# ================= REGISTER =================
-@app.post("/register")
-def register(user: User):
-    return create_user(user.email, user.password)
-
-
-# ================= LOGIN =================
-@app.post("/login")
-def login(data: Auth):
-
-    email = data.email.strip().lower()
-    user = get_user(email)
-
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    if not verify_password(data.password, user["password"]):
-        raise HTTPException(status_code=401, detail="Wrong password")
-
-    return {
-        "success": True,
-        "token": create_access_token({
-            "user_id": user["id"],
-            "email": user["email"]
-        })
-    }
-
-
-# ================= BOT ENGINE (ADMIN PANEL) =================
-def run_bot_engine(bot_name: str, message: str):
-
-    if "Python" in bot_name:
-        return f"🐍 Python Bot: processed '{message}' → result 42"
-
-    elif "JavaScript" in bot_name:
-        return f"⚡ JS Bot: executed '{message}' → console OK"
-
-    elif "Java" in bot_name:
-        return f"☕ Java Bot: compiled '{message}' → SUCCESS"
-
-    elif "C Bot" in bot_name:
-        return f"💻 C Bot: running '{message}' → SAFE EXECUTION"
-
-    elif "Security" in bot_name:
-        return f"🔐 Security Bot: scanned '{message}' → NO THREATS"
-
-    else:
-        return "❌ Unknown bot"
-
-
-# ================= RUN BOT API =================
-@app.post("/run-bot")
-def run_bot(req: BotRequest):
-    result = run_bot_engine(req.bot_name, req.message)
-    return {
-        "bot": req.bot_name,
-        "input": req.message,
-        "output": result
-    }
-
-
-# ================= CODE REVIEW ENGINE =================
+# ================= REVIEW CODE =================
 @app.post("/review")
 def review(req: CodeReq):
 
     code = req.code.strip()
 
     if not code:
-        return {"review": "❌ No code provided", "status": "error"}
+        return {"review": "⚠️ No code provided", "status": "error"}
 
     try:
         result = None
@@ -208,15 +129,14 @@ def review(req: CodeReq):
 
         # ================= JAVA =================
         elif req.lang == "java":
-
             temp_dir = tempfile.mkdtemp()
-            file_path = os.path.join(temp_dir, "Main.java")
+            java_file = os.path.join(temp_dir, "Main.java")
 
-            with open(file_path, "w") as f:
+            with open(java_file, "w") as f:
                 f.write(code)
 
             compile_result = subprocess.run(
-                ["javac", file_path],
+                ["javac", java_file],
                 capture_output=True,
                 text=True
             )
@@ -233,7 +153,6 @@ def review(req: CodeReq):
 
         # ================= C =================
         elif req.lang == "c":
-
             temp_dir = tempfile.mkdtemp()
 
             c_file = os.path.join(temp_dir, "main.c")
@@ -255,85 +174,54 @@ def review(req: CodeReq):
                 [exe_file],
                 capture_output=True,
                 text=True,
-                timeout=5
+                timeout=5,
+                shell=True
             )
 
-        else:
-            return {"review": "❌ Unsupported language", "status": "error"}
+        # ================= C# (FIXED INDENTATION) =================
+        elif req.lang == "csharp":
+            temp_dir = tempfile.mkdtemp()
 
-        output = result.stdout
-        error = result.stderr
+            cs_file = os.path.join(temp_dir, "Program.cs")
+
+            with open(cs_file, "w") as f:
+                f.write(code)
+
+            project_file = os.path.join(temp_dir, "Program.csproj")
+
+            with open(project_file, "w") as f:
+                f.write("""
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+</Project>
+""")
+
+            result = subprocess.run(
+                ["dotnet", "run", "--project", temp_dir],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+
+        # ================= SAFE OUTPUT =================
+        output = result.stdout.strip() if result and result.stdout else ""
+        error = result.stderr.strip() if result and result.stderr else ""
 
         if error:
             return {"review": error, "status": "error"}
 
-        return {
-            "review": output if output.strip() else "⚠️ No output",
-            "status": "success"
-        }
+        if output:
+            return {"review": output, "status": "success"}
+
+        return {"review": "⚠️ Code executed successfully but no output", "status": "success"}
+
+    except subprocess.TimeoutExpired:
+        return {"review": "❌ Code execution timeout", "status": "error"}
 
     except Exception as e:
         return {"review": str(e), "status": "error"}
-
-
-# ================= CHAT (OPENAI) =================
-@app.post("/chat")
-def chat(req: ChatReq):
-
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "You are a helpful AI coding assistant."},
-                {"role": "user", "content": req.message}
-            ]
-        )
-
-        return {
-            "reply": response.choices[0].message.content
-        }
-
-    except Exception as e:
-        return {"reply": f"⚠️ AI error: {str(e)}"}
-
-
-# ================= SETTINGS =================
-@app.get("/settings")
-def get_user_settings(authorization: str = Header(None)):
-
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Missing token")
-
-    token = authorization.replace("Bearer ", "")
-    user = verify_token(token)
-
-    return get_settings(user["user_id"])
-
-
-@app.post("/settings")
-def update_settings(req: SettingsReq, authorization: str = Header(None)):
-
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Missing token")
-
-    token = authorization.replace("Bearer ", "")
-    user = verify_token(token)
-
-    save_settings(
-        user["user_id"],
-        int(req.dark_mode),
-        req.api_key
-    )
-
-    return {"success": True}
-
-
-# ================= HISTORY =================
-@app.get("/history")
-def history():
-
-    try:
-        return {"history": get_history(1)}
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))

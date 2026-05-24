@@ -6,7 +6,8 @@
     "lucide-react": "^1.16.0",
     "react-chartjs-2": "^5.3.1",
     "react-router-dom": "^7.15.1",
-    "react-syntax-highlighter": "^16.1.0"
+    "react-syntax-highlighter": "^16.1.0",
+    "recharts": "^3.8.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss7-compat": "^2.2.17",

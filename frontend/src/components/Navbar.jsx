@@ -11,6 +11,7 @@ function Navbar() {
       <Link to="/chat">Chat</Link>
       
       <Link to="/admin">Admin </Link>
+      <Link to="/upgrade">Upgrade</Link>
 
       <Link to="/analytics">Analytics</Link>
 
@@ -20,7 +21,7 @@ function Navbar() {
 
       <Link to="/settings">Settings</Link>
 
-      <Link to="/subscription">Subscription</Link>
+      
 
       <Link to="/login">Login</Link>
 
@@ -31,4 +32,4 @@ function Navbar() {
   );
 }
 
-export default Navbar;
+export default Navbar;  

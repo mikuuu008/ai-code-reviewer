@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Navbar from "../components/Navbar";
+
 
 export default function Chat() {
 
@@ -59,7 +59,7 @@ export default function Chat() {
 
     <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 text-white flex flex-col">
 
-      <Navbar />
+      
 
       {/* TITLE */}
       <div className="p-6">

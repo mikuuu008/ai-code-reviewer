@@ -1,14 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar";
 
 export default function Home() {
+
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
-
-      {/* NAVBAR */}
-      <Navbar />
 
       {/* HERO SECTION */}
       <div className="flex flex-col items-center justify-center text-center px-6 mt-20">
@@ -42,34 +39,43 @@ export default function Home() {
         </div>
       </div>
 
-      {/* FEATURES SECTION */}
+      {/* FEATURES */}
       <div className="grid md:grid-cols-3 gap-6 mt-20 px-10">
 
-        <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+        <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 hover:scale-105 transition">
+
           <h2 className="text-xl font-bold text-cyan-400">
             🤖 AI Code Review
           </h2>
+
           <p className="text-slate-400 mt-2">
             Automatically analyze and improve your code using AI.
           </p>
+
         </div>
 
-        <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+        <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 hover:scale-105 transition">
+
           <h2 className="text-xl font-bold text-green-400">
             ⚡ Bot System
           </h2>
+
           <p className="text-slate-400 mt-2">
             Run multiple AI bots for Python, JS, Java, and more.
           </p>
+
         </div>
 
-        <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+        <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 hover:scale-105 transition">
+
           <h2 className="text-xl font-bold text-purple-400">
             🔐 Secure Platform
           </h2>
+
           <p className="text-slate-400 mt-2">
             Authentication + safe execution environment.
           </p>
+
         </div>
 
       </div>

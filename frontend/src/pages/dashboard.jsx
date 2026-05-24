@@ -1,5 +1,4 @@
 import { useState } from "react";
-import Navbar from "../components/Navbar";
 
 function Dashboard() {
 
@@ -8,6 +7,9 @@ function Dashboard() {
   const [lang, setLang] = useState("javascript");
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("");
+
+  // 🤖 AI TEDDY STATE (ADDED)
+  const [assistantOpen, setAssistantOpen] = useState(false);
 
   const handleReview = async () => {
 
@@ -45,7 +47,6 @@ function Dashboard() {
 
       setReview(data.review);
 
-      // optional status from backend
       if (data.status) {
         setStatus(data.status);
       }
@@ -58,16 +59,20 @@ function Dashboard() {
       setStatus("error");
 
     } finally {
-
       setLoading(false);
-
     }
   };
 
   return (
     <div className="min-h-screen bg-slate-950 text-white p-6">
 
-      <Navbar />
+      {/* 🧸 TEDDY ANIMATION TOP BAR */}
+      <div className="relative w-full overflow-hidden h-20 mb-4">
+
+        <div className="teddy-brown">🧸</div>
+        <div className="teddy-cream">🧸</div>
+
+      </div>
 
       <h1 className="text-4xl font-bold mt-8 mb-6">
         💻 AI Code Hero Dashboard
@@ -130,6 +135,92 @@ function Dashboard() {
           </pre>
         </div>
       )}
+
+      {/* 🤖 AI TEDDY ASSISTANT (ADDED EXACTLY) */}
+      <div className="ai-teddy-container">
+
+        <div
+          className="ai-teddy"
+          onClick={() => setAssistantOpen(!assistantOpen)}
+        >
+          🧸
+        </div>
+
+        {assistantOpen && (
+          <div className="ai-bubble">
+            <p>🤖 Hey! I’m your AI Teddy Assistant</p>
+            <p>💡 Need help with your code?</p>
+            <p>🚀 Click "Review Code" to analyze it</p>
+          </div>
+        )}
+
+      </div>
+
+      {/* 🎨 ANIMATIONS */}
+      <style>{`
+        .teddy-brown {
+          font-size: 40px;
+          position: absolute;
+          left: -60px;
+          top: 10px;
+          animation: runRight 6s linear infinite;
+          filter: sepia(0.7) saturate(1.5);
+        }
+
+        .teddy-cream {
+          font-size: 40px;
+          position: absolute;
+          right: -60px;
+          top: 10px;
+          animation: runLeft 6s linear infinite;
+          filter: brightness(1.3) sepia(0.2);
+        }
+
+        @keyframes runRight {
+          0% { left: -60px; transform: scale(1) rotate(0deg); }
+          50% { transform: scale(1.2) rotate(15deg); }
+          100% { left: 110%; transform: scale(0.9) rotate(-15deg); }
+        }
+
+        @keyframes runLeft {
+          0% { right: -60px; transform: scale(1) rotate(0deg); }
+          50% { transform: scale(1.2) rotate(-15deg); }
+          100% { right: 110%; transform: scale(0.9) rotate(15deg); }
+        }
+
+        /* 🤖 AI TEDDY STYLES */
+        .ai-teddy-container {
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          z-index: 999;
+        }
+
+        .ai-teddy {
+          font-size: 45px;
+          cursor: pointer;
+          animation: float 3s ease-in-out infinite;
+          user-select: none;
+        }
+
+        .ai-bubble {
+          background: #0f172a;
+          border: 1px solid #38bdf8;
+          padding: 10px;
+          border-radius: 12px;
+          margin-bottom: 10px;
+          width: 200px;
+          font-size: 12px;
+          color: white;
+          box-shadow: 0 0 15px rgba(56,189,248,0.4);
+        }
+
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+          100% { transform: translateY(0px); }
+        }
+      `}</style>
 
     </div>
   );

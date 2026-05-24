@@ -3,19 +3,24 @@ import os
 from passlib.context import CryptContext
 from datetime import datetime
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# ================= PASSWORD =================
+pwd_context = CryptContext(
+    schemes=["argon2"],
+    deprecated="auto"
+)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_NAME = os.path.join(BASE_DIR, "saas.db")
 
 
+# ================= DB CONNECTION =================
 def get_connection():
     conn = sqlite3.connect(DB_NAME, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
 
 
-# ================= INIT =================
+# ================= INIT DB =================
 def init_db():
     conn = get_connection()
     cursor = conn.cursor()
@@ -38,6 +43,16 @@ def init_db():
     )
     """)
 
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS settings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER UNIQUE,
+        dark_mode INTEGER DEFAULT 1,
+        api_key TEXT DEFAULT '',
+        updated_at TEXT
+    )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -45,12 +60,15 @@ def init_db():
 init_db()
 
 
-# ================= PASSWORD =================
-def hash_password(password):
+# ================= PASSWORD FIX =================
+
+def hash_password(password: str):
+    # FIX: no truncation needed for argon2
     return pwd_context.hash(password)
 
 
-def verify_password(plain, hashed):
+def verify_password(plain: str, hashed: str):
+    # FIX: no truncation needed for argon2
     return pwd_context.verify(plain, hashed)
 
 
@@ -70,6 +88,7 @@ def create_user(email, password):
 
     conn.commit()
     conn.close()
+
     return {"success": True}
 
 
@@ -83,30 +102,15 @@ def get_user(email):
     conn.close()
     return user
 
-def init_db():
-    conn = get_connection()
-    cursor = conn.cursor()
 
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS settings (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER UNIQUE,
-        dark_mode INTEGER DEFAULT 1,
-        api_key TEXT DEFAULT '',
-        updated_at TEXT
-    )
-    """)
-
-    conn.commit()
-    conn.close()  
-    
-    
+# ================= SETTINGS =================
 def get_settings(user_id):
     conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("SELECT * FROM settings WHERE user_id=?", (user_id,))
     row = cur.fetchone()
+
     conn.close()
 
     if not row:
@@ -115,7 +119,7 @@ def get_settings(user_id):
             "api_key": ""
         }
 
-    return row
+    return dict(row)
 
 
 def save_settings(user_id, dark_mode, api_key):
@@ -139,6 +143,8 @@ def save_settings(user_id, dark_mode, api_key):
 
     conn.commit()
     conn.close()
+
+
 # ================= HISTORY =================
 def save_history(user_id, type, content, response):
     conn = get_connection()
@@ -165,4 +171,4 @@ def get_history(user_id):
     rows = cur.fetchall()
     conn.close()
 
-    return rows
+    return [dict(row) for row in rows]

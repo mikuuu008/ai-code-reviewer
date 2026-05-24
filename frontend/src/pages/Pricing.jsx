@@ -1,7 +1,10 @@
-import Navbar from "../components/Navbar";
+
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Pricing() {
+
+  const navigate = useNavigate();
 
   const [selected, setSelected] = useState("Pro");
 
@@ -30,8 +33,7 @@ export default function Pricing() {
 
     <div className="min-h-screen bg-slate-950 text-white p-6">
 
-      <Navbar />
-
+    
       <h1 className="text-5xl font-bold mb-10 mt-10">
         💎 Pricing Plans
       </h1>
@@ -68,14 +70,26 @@ export default function Pricing() {
             </ul>
 
             <button
-              onClick={() => setSelected(plan.name)}
-              className={`w-full py-2 rounded-xl font-bold ${
+              onClick={() => {
+
+                setSelected(plan.name);
+
+                navigate("/upgrade", {
+                  state: {
+                    plan: plan.name
+                  }
+                });
+
+              }}
+              className={`w-full py-2 rounded-xl font-bold transition ${
                 selected === plan.name
                   ? "bg-green-500"
                   : "bg-cyan-500 hover:bg-cyan-600"
               }`}
             >
-              {selected === plan.name ? "Selected" : "Choose Plan"}
+              {selected === plan.name
+                ? "Upgrade Plan"
+                : "Choose Plan"}
             </button>
 
           </div>
@@ -83,6 +97,7 @@ export default function Pricing() {
         ))}
 
       </div>
+
     </div>
   );
 }

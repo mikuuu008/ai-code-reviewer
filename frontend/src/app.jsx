@@ -10,8 +10,9 @@ import Admin from "./pages/Admin";
 import Analytics from "./pages/Analytics";
 import History from "./pages/History";
 import Pricing from "./pages/Pricing";
+import Upgrade from "./pages/Upgrade";
+import Insights from "./pages/Insights";
 import Settings from "./pages/Settings";
-import Subscription from "./pages/Subscription";
 import Dashboard from "./pages/Dashboard";
 
 function App() {
@@ -25,10 +26,11 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/analytics" element={<Analytics />} />
+        <Route path="/insights" element={<Insights />} />
         <Route path="/history" element={<History />} />
         <Route path="/pricing" element={<Pricing />} />
+        <Route path="/upgrade" element={<Upgrade />} />
         <Route path="/settings" element={<Settings />} />
-        <Route path="/subscription" element={<Subscription />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Routes>
